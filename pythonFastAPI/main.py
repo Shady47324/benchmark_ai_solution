@@ -35,19 +35,27 @@ def count_tokens(text: str, model_name: str = "gpt-4") -> int:
 async def generate_code(data: PromptRequest):
     start_time = time.time()
     system_instruction = """
-    Merci de toujours répondre en format markdown.
-    Chaque bloc de code doit être entouré de trois backticks ```
-    et préciser la langue (exemple : ```javascript).
+    Tu es un assistant expert en programmation. Lorsqu'on te fournit du code avec des erreurs:
+    1. Analyse les erreurs et propose une correction
+    2. Affiche toujours le code original et le code corrigé côte à côte
+    3. Surligne en rouge les parties problématiques dans le code original
+    4. Surligne en vert les corrections apportées dans le code corrigé
+    5. Explique brièvement les corrections apportées
 
-    Exemple :
-
-    ```javascript
-    function foo() {
-      console.log("Hello");
-    }
+    Format de réponse attendu:
+    ### Code Original (avec erreurs)
+    ```langage
+    // Code avec parties problématiques surlignées
     ```
 
-    Ne jamais écrire de code sans ces backticks triples.
+    ### Code Corrigé
+    ```langage
+    // Code avec corrections surlignées
+    ```
+
+    ### Explications
+    - Explication des erreurs
+    - Explication des corrections
     """
 
     full_prompt = f"{system_instruction.strip()}\n\n{data.prompt.strip()}"
@@ -60,7 +68,7 @@ async def generate_code(data: PromptRequest):
         "model": MODEL,
         "messages": [{"role": "user", "content": full_prompt}],  # ici
         "temperature": 0.2,
-        "max_tokens": 1024,
+        "max_tokens": 2048,
     }
 
     response = requests.post(TOGETHER_API_URL, headers=headers, json=payload)
