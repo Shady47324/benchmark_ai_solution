@@ -2,11 +2,13 @@ package com.llama.llamabackend.model;
 
 public class PromptResponse {
     private String output;
-    private int input_tokens;
-    private int output_tokens;
-    private double response_time_ms;
+    private String language;
+    private String errors;
+    private String corrections;
 
-    // Getters & Setters
+    private int inputTokens;
+    private int outputTokens;
+    private double responseTimeMs;
 
     public String getOutput() {
         return output;
@@ -16,27 +18,52 @@ public class PromptResponse {
         this.output = output;
     }
 
-    public int getInput_tokens() {
-        return input_tokens;
+    public String getLanguage() {
+        return language;
     }
 
-    public void setInput_tokens(int input_tokens) {
-        this.input_tokens = input_tokens;
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
-    public int getOutput_tokens() {
-        return output_tokens;
+    public String getErrors() {
+        return errors;
     }
 
-    public void setOutput_tokens(int output_tokens) {
-        this.output_tokens = output_tokens;
+    public void setErrors(String errors) {
+        this.errors = errors;
     }
 
-    public double getResponse_time_ms() {
-        return response_time_ms;
+    public String getCorrections() {
+        return corrections;
     }
 
-    public void setResponse_time_ms(double response_time_ms) {
-        this.response_time_ms = response_time_ms;
+    public void setCorrections(String corrections) {
+        this.corrections = corrections;
     }
+
+    public int getInputTokens() {
+        return inputTokens;
+    }
+
+    public void setInputTokens(int inputTokens) {
+        this.inputTokens = inputTokens;
+    }
+
+    public int getOutputTokens() {
+        return outputTokens;
+    }
+
+    public void setOutputTokens(int outputTokens) {
+        this.outputTokens = outputTokens;
+    }
+
+    public double getResponseTimeMs() {
+        return responseTimeMs;
+    }
+
+    public void setResponseTimeMs(double responseTimeMs) {
+        this.responseTimeMs = responseTimeMs;
+    }
+
 }

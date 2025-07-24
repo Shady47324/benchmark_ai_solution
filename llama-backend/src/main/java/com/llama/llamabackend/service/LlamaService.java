@@ -1,58 +1,90 @@
 package com.llama.llamabackend.service;
 
-import com.llama.llamabackend.model.PromptHistory;
-import com.llama.llamabackend.model.PromptResponse;
-import com.llama.llamabackend.repository.PromptHistoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class LlamaService {
 
-    @Autowired
-    private PromptHistoryRepository promptHistoryRepository;
+    @JsonProperty("output")
+    private String output;
 
-    public PromptResponse sendPromptToPython(String prompt) {
-        String pythonUrl = "http://localhost:5000/api/generate";
+    @JsonProperty("language")
+    private String language;
 
-        RestTemplate restTemplate = new RestTemplate();
+    @JsonProperty("errors")
+    private String errors;
 
-        // Préparer les données à envoyer
-        Map<String, String> payload = new HashMap<>();
-        payload.put("prompt", prompt);
+    @JsonProperty("corrections")
+    private String corrections;
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+    @JsonProperty("input_tokens")
+    private int inputTokens;
 
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(payload, headers);
+    @JsonProperty("output_tokens")
+    private int outputTokens;
 
-        // Envoyer la requête à l'API Python
-        ResponseEntity<PromptResponse> responseEntity = restTemplate.exchange(
-                pythonUrl,
-                HttpMethod.POST,
-                entity,
-                PromptResponse.class
-        );
+    @JsonProperty("response_time_ms")
+    private double responseTimeMs;
 
-        PromptResponse response = responseEntity.getBody();
+    // Getters et setters
 
-        // Sauvegarder dans la base de données si réponse valide
-        if (response != null) {
-            PromptHistory history = new PromptHistory();
-            history.setPrompt(prompt);
-            history.setOutput(response.getOutput());
-            history.setInputTokens(response.getInput_tokens());
-            history.setOutputTokens(response.getOutput_tokens());
-            history.setResponseTimeMs(response.getResponse_time_ms());
+    public String getOutput() {
+        return output;
+    }
 
-            promptHistoryRepository.save(history);
-        }
+    public void setOutput(String output) {
+        this.output = output;
+    }
 
-        return response;
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    public String getErrors() {
+        return errors;
+    }
+
+    public void setErrors(String errors) {
+        this.errors = errors;
+    }
+
+    public String getCorrections() {
+        return corrections;
+    }
+
+    public void setCorrections(String corrections) {
+        this.corrections = corrections;
+    }
+
+    public int getInputTokens() {
+        return inputTokens;
+    }
+
+    public void setInputTokens(int inputTokens) {
+        this.inputTokens = inputTokens;
+    }
+
+    public int getOutputTokens() {
+        return outputTokens;
+    }
+
+    public void setOutputTokens(int outputTokens) {
+        this.outputTokens = outputTokens;
+    }
+
+    public double getResponseTimeMs() {
+        return responseTimeMs;
+    }
+
+    public void setResponseTimeMs(double responseTimeMs) {
+        this.responseTimeMs = responseTimeMs;
     }
 }
+
+
+

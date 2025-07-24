@@ -1,45 +1,43 @@
 package com.llama.llamabackend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 public class PromptHistory {
 
+    // Getters & Setters
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @Column(columnDefinition = "TEXT")
     private String prompt;
 
+    @Setter
     @Column(columnDefinition = "TEXT")
     private String output;
 
+    @Setter
     private int inputTokens;
+    @Setter
     private int outputTokens;
+    @Setter
     private double responseTimeMs;
 
+    @Setter
     private LocalDateTime timestamp = LocalDateTime.now();
+    @Setter
+    @Column(columnDefinition = "TEXT")
+    private String originalWithHighlights;
 
-    // Getters & Setters
-    public Long getId() { return id; }
+    @Setter
+    @Column(columnDefinition = "TEXT")
+    private String correctedWithHighlights;
 
-    public String getPrompt() { return prompt; }
-    public void setPrompt(String prompt) { this.prompt = prompt; }
-
-    public String getOutput() { return output; }
-    public void setOutput(String output) { this.output = output; }
-
-    public int getInputTokens() { return inputTokens; }
-    public void setInputTokens(int inputTokens) { this.inputTokens = inputTokens; }
-
-    public int getOutputTokens() { return outputTokens; }
-    public void setOutputTokens(int outputTokens) { this.outputTokens = outputTokens; }
-
-    public double getResponseTimeMs() { return responseTimeMs; }
-    public void setResponseTimeMs(double responseTimeMs) { this.responseTimeMs = responseTimeMs; }
-
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }

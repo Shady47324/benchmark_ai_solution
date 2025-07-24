@@ -34,7 +34,23 @@ def count_tokens(text: str, model_name: str = "gpt-4") -> int:
 @app.post("/api/generate")
 async def generate_code(data: PromptRequest):
     start_time = time.time()
+    system_instruction = """
+    Merci de toujours répondre en format markdown.
+    Chaque bloc de code doit être entouré de trois backticks ```
+    et préciser la langue (exemple : ```javascript).
 
+    Exemple :
+
+    ```javascript
+    function foo() {
+      console.log("Hello");
+    }
+    ```
+
+    Ne jamais écrire de code sans ces backticks triples.
+    """
+
+    full_prompt = f"{system_instruction.strip()}\n\n{data.prompt.strip()}"
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -42,9 +58,9 @@ async def generate_code(data: PromptRequest):
     
     payload = {
         "model": MODEL,
-        "messages": [{"role": "user", "content": data.prompt}],
+        "messages": [{"role": "user", "content": full_prompt}],  # ici
         "temperature": 0.2,
-        "max_tokens": 512,
+        "max_tokens": 1024,
     }
 
     response = requests.post(TOGETHER_API_URL, headers=headers, json=payload)
@@ -56,7 +72,7 @@ async def generate_code(data: PromptRequest):
     result = response.json()
     
     output = result["choices"][0]["message"]["content"].strip()
-    input_tokens = count_tokens(data.prompt)
+    input_tokens = count_tokens(full_prompt)
     output_tokens = count_tokens(output)
 
     return {
@@ -65,7 +81,6 @@ async def generate_code(data: PromptRequest):
         "output_tokens": output_tokens,
         "response_time_ms": round((end_time - start_time) * 1000, 2)
     }
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
