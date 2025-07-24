@@ -96,6 +96,19 @@ public class LlamaController {
             List<Integer> originalHighlightLines = CodeDiffUtil.getHighlightLines(patch, true);
             List<Integer> correctedHighlightLines = CodeDiffUtil.getHighlightLines(patch, false);
 
+            PromptHistory history = new PromptHistory();
+            history.setPrompt(prompt);
+            history.setOutput(output); // ✅ au lieu de setResponse()
+            history.setInputTokens(inputTokens);
+            history.setOutputTokens(outputTokens);
+            history.setResponseTimeMs(responseTime);
+            history.setTimestamp(LocalDateTime.now());
+            history.setOriginalWithHighlights(String.join("\n", originalLines));
+            history.setCorrectedWithHighlights(String.join("\n", correctedLines));
+
+            promptHistoryRepository.save(history);
+
+
             LlamaResponseDTO result = new LlamaResponseDTO();
             result.setOutput(output);
             result.setLanguage(language);
