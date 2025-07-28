@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "highlight.js/styles/atom-one-dark.css";
+
+/* Pour surligner les erreurs en rouge clair */
+.highlight-error {
+  background-color: #ffdddd;
+  color: #b00020; /* rouge sombre pour contraster */
+}
+
+/* Pour surligner les corrections en vert clair */
+.highlight-correction {
+  background-color: #ddffdd;
+  color: #006400; /* vert foncé pour contraster */
+}
