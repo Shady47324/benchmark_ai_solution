@@ -100,13 +100,41 @@ public class LlamaController {
             Object outputTokensObj = responseBody.get("output_tokens");
             int outputTokens = outputTokensObj instanceof Number ? ((Number) outputTokensObj).intValue() : 0;
 
+            // Utiliser les lignes de surlignage directement de FastAPI
+            List<Integer> originalHighlightLines = new ArrayList<>();
+            List<Integer> correctedHighlightLines = new ArrayList<>();
+            
+            // Préparer les lignes pour l'historique
             List<String> originalLines = Arrays.asList(code.split("\n"));
             List<String> correctedLines = Arrays.asList(correctedCode.split("\n"));
-
-            Patch<String> patch = DiffUtils.diff(originalLines, correctedLines);
-
-            List<Integer> originalHighlightLines = CodeDiffUtil.getHighlightLines(patch, true);
-            List<Integer> correctedHighlightLines = CodeDiffUtil.getHighlightLines(patch, false);
+            
+            try {
+                Object originalHighlightObj = responseBody.get("original_highlight_lines");
+                Object correctedHighlightObj = responseBody.get("corrected_highlight_lines");
+                
+                System.out.println("FastAPI response - original_highlight_lines: " + originalHighlightObj);
+                System.out.println("FastAPI response - corrected_highlight_lines: " + correctedHighlightObj);
+                
+                if (originalHighlightObj instanceof List) {
+                    originalHighlightLines = (List<Integer>) originalHighlightObj;
+                }
+                if (correctedHighlightObj instanceof List) {
+                    correctedHighlightLines = (List<Integer>) correctedHighlightObj;
+                }
+                
+                System.out.println("Parsed originalHighlightLines: " + originalHighlightLines);
+                System.out.println("Parsed correctedHighlightLines: " + correctedHighlightLines);
+                
+            } catch (Exception e) {
+                System.out.println("Error parsing highlight lines from FastAPI: " + e.getMessage());
+                // Fallback: utiliser le diff local si les données de FastAPI ne sont pas disponibles
+                Patch<String> patch = DiffUtils.diff(originalLines, correctedLines);
+                originalHighlightLines = CodeDiffUtil.getHighlightLines(patch, true);
+                correctedHighlightLines = CodeDiffUtil.getHighlightLines(patch, false);
+                
+                System.out.println("Fallback - originalHighlightLines: " + originalHighlightLines);
+                System.out.println("Fallback - correctedHighlightLines: " + correctedHighlightLines);
+            }
 
             // Sauvegarder dans l'historique des prompts (pour compatibilité)
             PromptHistory history = new PromptHistory();

@@ -17,6 +17,17 @@ function CodeComparison({ resultData }) {
     corrections
   } = resultData;
 
+  // Debug: afficher les données reçues
+  console.log('CodeComparison received:', {
+    originalCode: originalCode?.substring(0, 100) + '...',
+    correctedCode: correctedCode?.substring(0, 100) + '...',
+    originalHighlightLines,
+    correctedHighlightLines,
+    language,
+    errors,
+    corrections
+  });
+
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -28,12 +39,30 @@ function CodeComparison({ resultData }) {
   };
 
   const highlightLine = (code, highlightLines, highlightColor) => {
-    if (!code || !highlightLines) return code;
+    if (!code) return null;
     
     const lines = code.split('\n');
+    console.log('Highlighting lines:', { 
+      highlightLines, 
+      totalLines: lines.length, 
+      color: highlightColor,
+      highlightLinesType: typeof highlightLines,
+      isArray: Array.isArray(highlightLines)
+    });
+    
     return lines.map((line, index) => {
       const lineNumber = index + 1;
-      const isHighlighted = highlightLines.includes(lineNumber);
+      let isHighlighted = false;
+      
+      if (highlightLines) {
+        if (Array.isArray(highlightLines)) {
+          isHighlighted = highlightLines.includes(lineNumber);
+        } else if (typeof highlightLines === 'object') {
+          // Si c'est un objet, essayer de le convertir en array
+          const linesArray = Object.values(highlightLines);
+          isHighlighted = linesArray.includes(lineNumber);
+        }
+      }
       
       return (
         <div
