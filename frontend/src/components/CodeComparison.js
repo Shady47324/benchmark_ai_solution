@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 function CodeComparison({ resultData }) {
+  const [copied, setCopied] = useState(false);
+  
   if (!resultData) return null;
 
   const {
@@ -14,6 +16,16 @@ function CodeComparison({ resultData }) {
     errors,
     corrections
   } = resultData;
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Erreur lors de la copie:', err);
+    }
+  };
 
   const highlightLine = (code, highlightLines, highlightColor) => {
     if (!code || !highlightLines) return code;
@@ -42,14 +54,14 @@ function CodeComparison({ resultData }) {
       {/* Code original avec erreurs surlignées en rouge */}
       {originalCode && (
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="bg-red-50 border-b border-red-200 px-4 py-3">
+          <div className="bg-red-50 border-b border-red-200 px-4 py-3 flex items-center justify-between">
             <h3 className="text-red-700 font-semibold flex items-center">
               <span className="text-red-500 mr-2">❌</span>
               Code original avec erreurs
             </h3>
           </div>
-          <div className="bg-gray-900 text-gray-100 font-mono text-sm overflow-x-auto">
-            {highlightLine(originalCode, originalHighlightLines, 'bg-red-900/50')}
+          <div className="bg-white text-gray-800 font-mono text-sm overflow-x-auto border border-gray-200">
+            {highlightLine(originalCode, originalHighlightLines, 'bg-red-100')}
           </div>
         </div>
       )}
@@ -57,14 +69,35 @@ function CodeComparison({ resultData }) {
       {/* Code corrigé avec corrections surlignées en vert */}
       {correctedCode && (
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="bg-green-50 border-b border-green-200 px-4 py-3">
+          <div className="bg-green-50 border-b border-green-200 px-4 py-3 flex items-center justify-between">
             <h3 className="text-green-700 font-semibold flex items-center">
               <span className="text-green-500 mr-2">✅</span>
               Code corrigé
             </h3>
+            <button
+              onClick={() => copyToClipboard(correctedCode)}
+              className="flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition"
+              title="Copier le code corrigé"
+            >
+              {copied ? (
+                <>
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Copié !
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copier
+                </>
+              )}
+            </button>
           </div>
-          <div className="bg-gray-900 text-gray-100 font-mono text-sm overflow-x-auto">
-            {highlightLine(correctedCode, correctedHighlightLines, 'bg-green-900/50')}
+          <div className="bg-white text-gray-800 font-mono text-sm overflow-x-auto border border-gray-200">
+            {highlightLine(correctedCode, correctedHighlightLines, 'bg-green-100')}
           </div>
         </div>
       )}
