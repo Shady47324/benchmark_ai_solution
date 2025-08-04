@@ -21,18 +21,21 @@ function ChatView() {
     fetchChat();
   }, [chatId]);
 
-  const handleNewResponse = async ({ prompt, output }) => {
-    const newMsg = { prompt, output };
+  const handleNewResponse = async (responseData) => {
+    const newMsg = {
+      prompt: responseData.originalCode,
+      output: responseData.correctedCode,
+      resultData: responseData
+    };
     setMessages((prev) => [...prev, newMsg]);
-    const hasCode = /(```[\s\S]*?```)|(\bfunction\b|\bclass\b|\bif\b|\bfor\b|\bwhile\b|\bconst\b|\blet\b)/i.test(prompt);
-    setIsCode(hasCode);
+    setIsCode(true);
   };
 
   return (
     <div className="p-4">
       <PromptForm chatId={chatId} onResponse={handleNewResponse} />
       {messages.map((msg, index) => (
-        <Result key={index} prompt={msg.prompt} result={msg.output} isCode={isCode} />
+        <Result key={index} resultData={msg.resultData} />
       ))}
     </div>
   );

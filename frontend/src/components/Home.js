@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import PromptForm from './PromptForm';
-import Sidebar from './Sidebar';
 import Result from './Result';
 
 
@@ -18,7 +17,6 @@ function Home() {
 
  return (
   <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
-    <Sidebar onChatSelect={setSelectedChatId} />
 
     <main className="flex-1 p-6 overflow-y-auto max-h-screen relative">
       <div className="max-w-4xl mx-auto w-full">

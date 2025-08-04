@@ -4,7 +4,11 @@ import com.github.difflib.DiffUtils;
 import com.github.difflib.patch.Patch;
 import com.llama.llamabackend.dto.PromptRequest;
 import com.llama.llamabackend.dto.LlamaResponseDTO;
+import com.llama.llamabackend.model.Chat;
+import com.llama.llamabackend.model.Message;
 import com.llama.llamabackend.model.PromptHistory;
+import com.llama.llamabackend.repository.ChatRepository;
+import com.llama.llamabackend.repository.MessageRepository;
 import com.llama.llamabackend.repository.PromptHistoryRepository;
 import com.llama.llamabackend.service.LlamaService;
 import com.llama.llamabackend.utils.CodeDiffUtil;
@@ -24,11 +28,16 @@ public class LlamaController {
 
     private final LlamaService llamaService;
     private final PromptHistoryRepository promptHistoryRepository;
+    private final ChatRepository chatRepository;
+    private final MessageRepository messageRepository;
 
     @Autowired
-    public LlamaController(LlamaService llamaService, PromptHistoryRepository promptHistoryRepository) {
+    public LlamaController(LlamaService llamaService, PromptHistoryRepository promptHistoryRepository, 
+                         ChatRepository chatRepository, MessageRepository messageRepository) {
         this.llamaService = llamaService;
         this.promptHistoryRepository = promptHistoryRepository;
+        this.chatRepository = chatRepository;
+        this.messageRepository = messageRepository;
     }
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -49,13 +58,16 @@ public class LlamaController {
     }
 
 
-    @PostMapping("/llama")
+    @PostMapping("/prompts")
     public ResponseEntity<LlamaResponseDTO> generateWithLlama(@RequestBody PromptRequest promptRequest) {
         String prompt = promptRequest.getPrompt();
-        String pythonApiUrl = "http://localhost:8000/api/generate";
+        String code = promptRequest.getCode();
+        Long chatId = promptRequest.getChatId();
+        String pythonApiUrl = "http://localhost:8000/analyze";
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("prompt", prompt);
+        requestBody.put("code", code);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
@@ -77,10 +89,10 @@ public class LlamaController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
 
-            String output = (String) responseBody.getOrDefault("output", "");
+            String correctedCode = (String) responseBody.getOrDefault("corrected_code", "");
             String language = (String) responseBody.getOrDefault("language", "inconnue");
-            String errors = (String) responseBody.getOrDefault("errors", "");
-            String corrections = (String) responseBody.getOrDefault("corrections", "");
+            List<String> errors = (List<String>) responseBody.getOrDefault("errors", new ArrayList<>());
+            List<String> corrections = (List<String>) responseBody.getOrDefault("corrections", new ArrayList<>());
 
             Object inputTokensObj = responseBody.get("input_tokens");
             int inputTokens = inputTokensObj instanceof Number ? ((Number) inputTokensObj).intValue() : 0;
@@ -88,34 +100,62 @@ public class LlamaController {
             Object outputTokensObj = responseBody.get("output_tokens");
             int outputTokens = outputTokensObj instanceof Number ? ((Number) outputTokensObj).intValue() : 0;
 
-            List<String> originalLines = Arrays.asList(prompt.split("\n"));
-            List<String> correctedLines = Arrays.asList(output.split("\n"));
+            List<String> originalLines = Arrays.asList(code.split("\n"));
+            List<String> correctedLines = Arrays.asList(correctedCode.split("\n"));
 
             Patch<String> patch = DiffUtils.diff(originalLines, correctedLines);
 
             List<Integer> originalHighlightLines = CodeDiffUtil.getHighlightLines(patch, true);
             List<Integer> correctedHighlightLines = CodeDiffUtil.getHighlightLines(patch, false);
 
+            // Sauvegarder dans l'historique des prompts (pour compatibilité)
             PromptHistory history = new PromptHistory();
             history.setPrompt(prompt);
-            history.setOutput(output); // ✅ au lieu de setResponse()
+            history.setOutput(correctedCode);
             history.setInputTokens(inputTokens);
             history.setOutputTokens(outputTokens);
             history.setResponseTimeMs(responseTime);
             history.setTimestamp(LocalDateTime.now());
             history.setOriginalWithHighlights(String.join("\n", originalLines));
             history.setCorrectedWithHighlights(String.join("\n", correctedLines));
-
             promptHistoryRepository.save(history);
+
+            // Sauvegarder le message dans le chat
+            if (chatId != null) {
+                Chat chat = chatRepository.findById(chatId).orElse(null);
+                if (chat != null) {
+                    Message message = new Message();
+                    message.setChat(chat);
+                    message.setPrompt(prompt);
+                    message.setOutput(correctedCode);
+                    message.setOriginalCode(code);
+                    message.setCorrectedCode(correctedCode);
+                    message.setOriginalHighlightLines(originalHighlightLines);
+                    message.setCorrectedHighlightLines(correctedHighlightLines);
+                    message.setLanguage(language);
+                    message.setErrors(errors);
+                    message.setCorrections(corrections);
+                    message.setInputTokens(inputTokens);
+                    message.setOutputTokens(outputTokens);
+                    message.setResponseTimeMs(responseTime);
+                    message.setCreatedAt(LocalDateTime.now());
+                    
+                    messageRepository.save(message);
+                    
+                    // Mettre à jour le timestamp du chat
+                    chat.setUpdatedAt(LocalDateTime.now());
+                    chatRepository.save(chat);
+                }
+            }
 
 
             LlamaResponseDTO result = new LlamaResponseDTO();
-            result.setOutput(output);
+            result.setOutput(correctedCode);
             result.setLanguage(language);
-            result.setErrors(Collections.singletonList(errors));
-            result.setCorrections(Collections.singletonList(corrections));
-            result.setOriginalCode(prompt);
-            result.setCorrectedCode(output);
+            result.setErrors(errors);
+            result.setCorrections(corrections);
+            result.setOriginalCode(code);
+            result.setCorrectedCode(correctedCode);
             result.setOriginalHighlightLines(originalHighlightLines);
             result.setCorrectedHighlightLines(correctedHighlightLines);
             result.setInputTokens(inputTokens);
