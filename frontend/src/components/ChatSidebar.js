@@ -14,6 +14,15 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
     fetchChats();
   }, []);
 
+  // Rafraîchir les chats toutes les 5 secondes pour voir les nouveaux messages
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchChats();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchChats = async () => {
     try {
       setLoading(true);
@@ -188,9 +197,16 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
                       <h3 className="font-medium text-gray-800 truncate">
                         {chat.title}
                       </h3>
-                      <p className="text-xs text-gray-500">
-                        {formatDate(chat.updatedAt)}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-500">
+                          {formatDate(chat.updatedAt)}
+                        </p>
+                        {chat.messages && chat.messages.length > 0 && (
+                          <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
+                            {chat.messages.length} message{chat.messages.length > 1 ? 's' : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <button
                       onClick={(e) => deleteChat(chat.id, e)}
