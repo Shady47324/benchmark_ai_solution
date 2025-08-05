@@ -23,4 +23,5 @@ public class LlamaResponseDTO {
     private String correctedCode;
     private List<Integer> originalHighlightLines;
     private List<Integer> correctedHighlightLines;
+    private Long chatId;
 }

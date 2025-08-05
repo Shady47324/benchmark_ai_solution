@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useChatContext } from '../context/ChatContext';
 import axios from 'axios';
 
 function ChatSidebar({ currentChatId, onChatSelect }) {
-  const [chats, setChats] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { chats, loading, fetchChats, addChat, removeChat } = useChatContext();
   const [newChatTitle, setNewChatTitle] = useState('');
   const [showNewChatForm, setShowNewChatForm] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -12,28 +12,7 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
 
   useEffect(() => {
     fetchChats();
-  }, []);
-
-  // Rafraîchir les chats toutes les 5 secondes pour voir les nouveaux messages
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchChats();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchChats = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('http://localhost:8080/api/chats');
-      setChats(response.data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des chats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchChats]);
 
   const createNewChat = async (e) => {
     e.preventDefault();
@@ -44,7 +23,7 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
         title: newChatTitle
       });
       
-      setChats(prev => [response.data, ...prev]);
+      addChat(response.data);
       setNewChatTitle('');
       setShowNewChatForm(false);
       
@@ -64,7 +43,7 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
 
     try {
       await axios.delete(`http://localhost:8080/api/chats/${chatId}`);
-      setChats(prev => prev.filter(chat => chat.id !== chatId));
+      removeChat(chatId);
       
       // Si on supprime le chat actuel, naviguer vers la page d'accueil
       if (currentChatId === chatId) {

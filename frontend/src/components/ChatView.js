@@ -3,12 +3,14 @@ import { useParams } from 'react-router-dom';
 import PromptForm from './PromptForm';
 import Result from './Result';
 import axios from 'axios';
+import { useChatContext } from '../context/ChatContext';
 
 function ChatView() {
   const { chatId } = useParams();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState(null);
+  const { fetchChats } = useChatContext();
 
   useEffect(() => {
     const fetchChat = async () => {
@@ -55,6 +57,9 @@ function ChatView() {
       resultData: responseData
     };
     setMessages((prev) => [...prev, newMsg]);
+    
+    // Rafraîchir la liste des chats pour mettre à jour le timestamp du chat actuel
+    fetchChats();
   };
 
   if (loading) {

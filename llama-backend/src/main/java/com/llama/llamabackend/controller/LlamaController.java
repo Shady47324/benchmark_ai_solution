@@ -149,32 +149,42 @@ public class LlamaController {
             promptHistoryRepository.save(history);
 
             // Sauvegarder le message dans le chat
+            Chat chat = null;
             if (chatId != null) {
-                Chat chat = chatRepository.findById(chatId).orElse(null);
-                if (chat != null) {
-                    Message message = new Message();
-                    message.setChat(chat);
-                    message.setPrompt(prompt);
-                    message.setOutput(correctedCode);
-                    message.setOriginalCode(code);
-                    message.setCorrectedCode(correctedCode);
-                    message.setOriginalHighlightLines(originalHighlightLines);
-                    message.setCorrectedHighlightLines(correctedHighlightLines);
-                    message.setLanguage(language);
-                    message.setErrors(errors);
-                    message.setCorrections(corrections);
-                    message.setInputTokens(inputTokens);
-                    message.setOutputTokens(outputTokens);
-                    message.setResponseTimeMs(responseTime);
-                    message.setCreatedAt(LocalDateTime.now());
-                    
-                    messageRepository.save(message);
-                    
-                    // Mettre à jour le timestamp du chat
-                    chat.setUpdatedAt(LocalDateTime.now());
-                    chatRepository.save(chat);
-                }
+                chat = chatRepository.findById(chatId).orElse(null);
             }
+            
+            // Si aucun chatId fourni ou chat non trouvé, créer un nouveau chat
+            if (chat == null) {
+                chat = new Chat();
+                chat.setTitle("Analyse de code - " + LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+                chat.setCreatedAt(LocalDateTime.now());
+                chat.setUpdatedAt(LocalDateTime.now());
+                chat = chatRepository.save(chat);
+            }
+            
+            // Créer et sauvegarder le message
+            Message message = new Message();
+            message.setChat(chat);
+            message.setPrompt(prompt);
+            message.setOutput(correctedCode);
+            message.setOriginalCode(code);
+            message.setCorrectedCode(correctedCode);
+            message.setOriginalHighlightLines(originalHighlightLines);
+            message.setCorrectedHighlightLines(correctedHighlightLines);
+            message.setLanguage(language);
+            message.setErrors(errors);
+            message.setCorrections(corrections);
+            message.setInputTokens(inputTokens);
+            message.setOutputTokens(outputTokens);
+            message.setResponseTimeMs(responseTime);
+            message.setCreatedAt(LocalDateTime.now());
+            
+            messageRepository.save(message);
+            
+            // Mettre à jour le timestamp du chat
+            chat.setUpdatedAt(LocalDateTime.now());
+            chatRepository.save(chat);
 
 
             LlamaResponseDTO result = new LlamaResponseDTO();
@@ -189,6 +199,7 @@ public class LlamaController {
             result.setInputTokens(inputTokens);
             result.setOutputTokens(outputTokens);
             result.setResponseTimeMs(responseTime);
+            result.setChatId(chat.getId());
 
             return ResponseEntity.ok(result);
 
