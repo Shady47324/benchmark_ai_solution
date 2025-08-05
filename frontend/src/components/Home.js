@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PromptForm from './PromptForm';
 import Result from './Result';
 
@@ -8,11 +9,17 @@ function Home() {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [prompt, setPrompt] = useState('');
   const [resultData, setResultData] = useState(null); // Stocke l'objet complet
+  const navigate = useNavigate();
 
   // On reçoit maintenant tout l'objet { output, language, errors, corrections }
   const handleResponse = (response) => {
     setPrompt(response.prompt); // Tu peux garder le prompt pour l'afficher
     setResultData(response);    // Stocke tout : output, language, etc.
+    
+    // Si un nouveau chat a été créé, naviguer vers ce chat
+    if (response.chatId) {
+      navigate(`/chat/${response.chatId}`);
+    }
   };
 
  return (

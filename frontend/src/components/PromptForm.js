@@ -14,11 +14,17 @@ function PromptForm({ onResponse, chatId }) {
 
     try {
       // Envoi du prompt et du code à l'API
-      const response = await axios.post('http://localhost:8080/api/prompts', {
+      const requestBody = {
         prompt: prompt || 'Analyse et corrige ce code',
         code: code,
-        chatId,
-      });
+      };
+      
+      // N'ajouter chatId que s'il est défini (pas sur la page d'accueil)
+      if (chatId) {
+        requestBody.chatId = chatId;
+      }
+      
+      const response = await axios.post('http://localhost:8080/api/prompts', requestBody);
 
       onResponse(response.data);
       setPrompt('');
