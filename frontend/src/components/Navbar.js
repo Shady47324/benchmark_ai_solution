@@ -21,9 +21,9 @@ function Navbar() {
             <NavLink to="/History" className={({ isActive }) => isActive ? activeClass : 'text-gray-700 hover:text-orange-600 font-medium'}>
               Historique
             </NavLink>
-            <a href="#about" className="text-gray-700 hover:text-orange-600 font-medium cursor-pointer">
+            <NavLink to="/about" className={({ isActive }) => isActive ? activeClass : 'text-gray-700 hover:text-orange-600 font-medium'}>
               À propos
-            </a>
+            </NavLink>
           </div>
 
           <div className="md:hidden">
@@ -59,9 +59,10 @@ function Navbar() {
             (isActive ? 'bg-orange-50 text-orange-600 font-semibold' : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600') + ' block px-4 py-2'}>
             Historique
           </NavLink>
-          <a href="#about" onClick={() => setIsOpen(false)} className="block px-4 py-2 text-gray-700 hover:bg-orange-50 hover:text-orange-600">
+          <NavLink to="/about" onClick={() => setIsOpen(false)} className={({ isActive }) =>
+            (isActive ? 'bg-orange-50 text-orange-600 font-semibold' : 'text-gray-700 hover:bg-orange-50 hover:text-orange-600') + ' block px-4 py-2'}>
             À propos
-          </a>
+          </NavLink>
         </div>
       )}
     </nav>

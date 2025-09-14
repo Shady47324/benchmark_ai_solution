@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatContext } from '../context/ChatContext';
+import { useNotification } from './Notification';
+import { useConfirmationModal } from './ConfirmationModal';
 import axios from 'axios';
 
 function ChatSidebar({ currentChatId, onChatSelect }) {
@@ -8,6 +10,9 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
   const [newChatTitle, setNewChatTitle] = useState('');
   const [showNewChatForm, setShowNewChatForm] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [deletingChatId, setDeletingChatId] = useState(null);
+  const { showNotification, NotificationComponent } = useNotification();
+  const { showConfirmation, ConfirmationModalComponent } = useConfirmationModal();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,11 +44,28 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
 
   const deleteChat = async (chatId, e) => {
     e.stopPropagation();
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce chat ?')) return;
+    
+    const chatTitle = chats.find(chat => chat.id === chatId)?.title || 'ce chat';
+    const messageCount = chats.find(chat => chat.id === chatId)?.messages?.length || 0;
+    
+    // Utilisation de la modale de confirmation élégante
+    const confirmed = await showConfirmation({
+      title: 'Supprimer le chat',
+      message: `Êtes-vous sûr de vouloir supprimer "${chatTitle}" ?\n\n${messageCount > 0 ? `Ce chat contient ${messageCount} message${messageCount > 1 ? 's' : ''}.\n\n` : ''}Cette action est irréversible et ne peut pas être annulée.`,
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      type: 'danger'
+    });
 
+    if (!confirmed) return;
+
+    setDeletingChatId(chatId);
+    
     try {
       await axios.delete(`http://localhost:8080/api/chats/${chatId}`);
       removeChat(chatId);
+      
+      showNotification('success', `Chat "${chatTitle}" supprimé avec succès`, 4000);
       
       // Si on supprime le chat actuel, naviguer vers la page d'accueil
       if (currentChatId === chatId) {
@@ -51,6 +73,21 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
       }
     } catch (error) {
       console.error('Erreur lors de la suppression du chat:', error);
+      
+      let errorMessage = 'Erreur lors de la suppression du chat';
+      if (error.response?.status === 404) {
+        errorMessage = 'Chat introuvable ou déjà supprimé';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Vous n\'avez pas les permissions pour supprimer ce chat';
+      } else if (error.response?.status >= 500) {
+        errorMessage = 'Erreur serveur. Veuillez réessayer plus tard';
+      } else if (error.code === 'NETWORK_ERROR') {
+        errorMessage = 'Erreur de connexion. Vérifiez votre connexion internet';
+      }
+      
+      showNotification('error', errorMessage, 6000);
+    } finally {
+      setDeletingChatId(null);
     }
   };
 
@@ -87,7 +124,10 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
   }
 
   return (
-    <div className={`${isCollapsed ? 'w-16' : 'w-80'} bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300`}>
+    <>
+      <NotificationComponent />
+      <ConfirmationModalComponent />
+      <div className={`${isCollapsed ? 'w-16' : 'w-80'} bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300`}>
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
@@ -189,12 +229,23 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
                     </div>
                     <button
                       onClick={(e) => deleteChat(chat.id, e)}
-                      className="ml-2 p-1 text-gray-400 hover:text-red-500 transition"
-                      title="Supprimer le chat"
+                      disabled={deletingChatId === chat.id}
+                      className={`ml-2 p-1 transition ${
+                        deletingChatId === chat.id 
+                          ? 'text-gray-300 cursor-not-allowed' 
+                          : 'text-gray-400 hover:text-red-500'
+                      }`}
+                      title={deletingChatId === chat.id ? "Suppression en cours..." : "Supprimer le chat"}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      {deletingChatId === chat.id ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -204,6 +255,7 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
         </div>
       )}
     </div>
+    </>
   );
 }
 
