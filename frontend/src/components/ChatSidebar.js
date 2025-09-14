@@ -205,23 +205,23 @@ function ChatSidebar({ currentChatId, onChatSelect }) {
                       onChatSelect(chat);
                     }
                   }}
-                  className={`p-3 rounded-lg cursor-pointer transition ${
+                  className={`p-2 rounded-lg cursor-pointer transition ${
                     currentChatId === chat.id
-                      ? 'bg-orange-100 border border-orange-200'
-                      : 'bg-white hover:bg-gray-100 border border-transparent'
+                      ? 'bg-orange-100 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800'
+                      : 'bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-800 truncate">
+                      <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                         {chat.title}
                       </h3>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500">
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {formatDate(chat.updatedAt)}
                         </p>
                         {chat.messages && chat.messages.length > 0 && (
-                          <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
+                          <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full">
                             {chat.messages.length} message{chat.messages.length > 1 ? 's' : ''}
                           </span>
                         )}

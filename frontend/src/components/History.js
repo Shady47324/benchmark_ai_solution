@@ -75,60 +75,125 @@ function History() {
     <>
       <NotificationComponent />
       <ConfirmationModalComponent />
-      <div className="max-w-5xl mx-auto mt-6 p-6 bg-white dark:bg-gray-800 rounded shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center text-orange-600 dark:text-orange-400">🕘 Historique des Prompts</h2>
-      <table className="w-full table-auto border-collapse border border-gray-300 text-sm">
-        <thead className="bg-orange-100 dark:bg-orange-900 text-gray-700 dark:text-gray-200">
-          <tr>
-            <th className="border px-3 py-2">ID</th>
-            <th className="border px-3 py-2">Prompt</th>
-            <th className="border px-3 py-2">Output</th>
-            <th className="border px-3 py-2">Date</th>
-            <th className="border px-3 py-2">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map((item) => (
-            <tr key={item.id} className="hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-              <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center text-gray-900 dark:text-gray-100">{item.id}</td>
-              <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 whitespace-pre-wrap max-w-xs text-gray-900 dark:text-gray-100">{item.prompt}</td>
-              <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 whitespace-pre-wrap max-w-md text-gray-900 dark:text-gray-100">{item.output}</td>
-              <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center text-gray-900 dark:text-gray-100">
-                {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A'}
-              </td>
-              <td className="border border-gray-300 dark:border-gray-600 px-2 py-2 text-center">
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  disabled={deletingId === item.id}
-                  className={`text-sm font-medium px-3 py-1 rounded shadow transition ${
-                    deletingId === item.id
-                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      : 'bg-red-500 hover:bg-red-600 text-white'
-                  }`}
-                  title={deletingId === item.id ? "Suppression en cours..." : "Supprimer ce prompt"}
-                >
-                  {deletingId === item.id ? (
-                    <span className="flex items-center">
-                      <svg className="w-3 h-3 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                      Suppression...
-                    </span>
-                  ) : (
-                    'Supprimer'
-                  )}
-                </button>
-              </td>
-            </tr>
-          ))}
-          {history.length === 0 && (
-            <tr>
-              <td colSpan="5" className="text-center py-4 text-gray-500 dark:text-gray-400">Aucune donnée pour le moment.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="section-spacing">
+          <div className="max-width-content container-padding">
+            {/* Header */}
+            <div className="text-center mb-12 animate-fade-in">
+              <div className="flex items-center justify-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-2xl flex items-center justify-center">
+                  <span className="text-2xl">🕘</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+                  Historique des Prompts
+                </h1>
+              </div>
+              <p className="text-xl text-muted max-w-2xl mx-auto">
+                Consultez et gérez tous vos analyses de code précédentes
+              </p>
+            </div>
+
+            {/* Table Container */}
+            <div className="card-elevated overflow-hidden animate-scale-in">
+              {history.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    Aucun historique
+                  </h3>
+                  <p className="text-muted">
+                    Vos analyses de code apparaîtront ici une fois que vous commencerez à utiliser l'assistant.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                          ID
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                          Prompt
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                          Réponse
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {history.map((item, index) => (
+                        <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-150">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-gray-100">
+                            #{item.id}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 max-w-xs">
+                            <div className="truncate" title={item.prompt}>
+                              {item.prompt || <span className="text-subtle italic">Aucun prompt</span>}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 max-w-md">
+                            <div className="truncate" title={item.output}>
+                              {item.output || <span className="text-subtle italic">Aucune réponse</span>}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted">
+                            {item.timestamp ? new Date(item.timestamp).toLocaleDateString('fr-FR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }) : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 text-center">
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              disabled={deletingId === item.id}
+                              className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                deletingId === item.id
+                                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                                  : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
+                              }`}
+                              title={deletingId === item.id ? "Suppression en cours..." : "Supprimer ce prompt"}
+                            >
+                              {deletingId === item.id ? (
+                                <>
+                                  <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  Suppression...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  Supprimer
+                                </>
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
